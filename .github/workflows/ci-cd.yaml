@@ -49,7 +49,7 @@ jobs:
       - name: Run container and verify
         run: |
           container_output=$(docker run ${{ secrets.DOCKERHUB_USER }}/hello-world:${{ steps.set-version.outputs.version }})
-          if ["$container_output" = "Hello World"]; then
+          if [ "$container_output" = "Hello World" ]; then
             echo "Successfully printed Hello World"
           else
             echo "Unexpected output: '$container_output'"
