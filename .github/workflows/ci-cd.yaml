@@ -15,23 +15,23 @@ jobs:
         with:
           fetch-depth: 0  # get all commits and tags
 
-      # # Restore & Build
-      # - name: Setup .NET
-      #   uses: actions/setup-dotnet@v3
-      #   with: 
-      #     dotnet-version: '8.0.411'
+      # Restore & Build
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with: 
+          dotnet-version: '8.0.411'
 
-      # # make sure all the tools are installed - docker / trivy 
+      # make sure all the tools are installed - docker / trivy 
 
-      # - name: Restore
-      #   run: dotnet restore src/App/App.csproj
+      - name: Restore
+        run: dotnet restore src/App/App.csproj
 
-      # - name: Build
-      #   run: dotnet build src/App/App.csproj --configuration Release --no-restore
+      - name: Build
+        run: dotnet build src/App/App.csproj --configuration Release --no-restore
 
-      # # Test
-      # - name: Test
-      #   run: dotnet test tests/App.Tests/App.Tests.csproj --configuration Release
+      # Test
+      - name: Test
+        run: dotnet test tests/App.Tests/App.Tests.csproj --configuration Release
 
       # Versioning
       - name: Get version from tag
@@ -46,6 +46,7 @@ jobs:
           docker build -t ${{ secrets.DOCKERHUB_USER }}/hello-world:${{ steps.set-version.outputs.version }} .
 
       - name: Run Trivy vulnerability scanner
+        if: ${{ !env.ACT }}
         uses: aquasecurity/trivy-action@0.31.0
         with:
           image-ref: 'docker.io/${{ secrets.DOCKERHUB_USER }}/hello-world:${{ steps.set-version.outputs.version }}'
@@ -54,21 +55,6 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
           severity: 'CRITICAL,HIGH'
-
-      # - name: Install Trivy
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install -y wget gnupg lsb-release
-      #     wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
-      #     echo deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main \
-      #       | sudo tee /etc/apt/sources.list.d/trivy.list
-      #     sudo apt-get update
-      #     sudo apt-get install -y trivy
-
-      # Security scan (Trivy)
-      # - name: Scan image with Trivy
-      #   run: |
-      #     trivy image --exit-code 1 --severity HIGH,CRITICAL ${{ secrets.DOCKERHUB_USER }}/hello-world:${{ steps.set-version.outputs.version }}
 
          # Run & Verify output
       - name: Run container and verify
