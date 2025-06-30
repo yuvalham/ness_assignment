@@ -12,6 +12,8 @@ jobs:
       version: ${{ steps.set-version.outputs.version }}
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # get all commits and tags
 
       # Restore & Build
       - name: Setup .NET
@@ -35,7 +37,6 @@ jobs:
       - name: Get version from tag
         id: set-version
         run: |
-          git fetch --tags
           TAG=$(git describe --tags --abbrev=0)
           echo "version=$TAG" >> $GITHUB_OUTPUT
 
