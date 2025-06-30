@@ -1,0 +1,71 @@
+name: CI/CD
+
+on:
+  push:
+    branches: 
+      - main 
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.set-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v3
+
+      # Restore & Build
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with: 
+          dotnet-version: '8.0.411'
+
+      # make sure all the tools are installed - docker / trivy 
+
+      - name: Restore
+        run: dotnet restore src/App/App.csproj
+
+      - name: Build
+        run: dotnet build src/App/App.csproj --configuration Release --no-restore
+
+      # Test
+      - name: Test
+        run: dotnet test tests/App.Tests/App.Tests.csproj --no-build --configuration Release
+
+      # Versioning
+      - name: Get version from tag
+        id: set-version
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          echo "version=$TAG" >> $GITHUB_OUTPUT
+
+      # Docker image build
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.DOCKERHUB_USER }}/hello-world:${{ steps.set-version.outputs.version }} .
+
+         # Run & Verify output
+      - name: Run container and verify
+        run: |
+          container_output=$(docker run ${{ secrets.DOCKERHUB_USER }}/hello-world:${{ steps.set-version.outputs.version }})
+          if ["$container_output" = "Hello World"]; then
+            echo "Successfully printed Hello World"
+          else
+            echo "Unexpected output: '$container_output'"
+            exit 1
+          fi
+
+      # Push to Docker Hub
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}" --password-stdin
+
+      - name: Push image
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USER }}/hello-world:${{ steps.set-version.outputs.version }}
+
+  print-version:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Version
+        run: |
+          echo "Deployed version: ${{ needs.build-and-push.outputs.version }}"
