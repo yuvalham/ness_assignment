@@ -14,14 +14,7 @@ WORKDIR /app
 # Patch OS packages to pull in security fixes
 RUN apt-get update \
  && apt-get install -y --only-upgrade \
-      libc-bin \
-      libc6 \
-      libpam-runtime \
-      libpam-modules \
-      libpam-modules-bin \
-      libpam0g \
-      perl-base \
-      zlib1g \
+      libicu72 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish ./
