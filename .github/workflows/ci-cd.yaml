@@ -35,6 +35,7 @@ jobs:
       - name: Get version from tag
         id: set-version
         run: |
+          git fetch --tags
           TAG=$(git describe --tags --abbrev=0)
           echo "version=$TAG" >> $GITHUB_OUTPUT
 
