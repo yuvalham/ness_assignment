@@ -52,3 +52,7 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+coverage-report
+
+#  k8s
+*/dockerhub-secret.yaml
