@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+    spec:
+      containers:
+      - name: hello-world
+        image: yuvalham/hello-world:v1.0.0
+        resources:
+          requests:
+            cpu:    "100m"    
+            memory: "128Mi"   
+          limits:
+            cpu:    "200m"    
+            memory: "256Mi"   
+      imagePullSecrets:
+      - name: dockerhub-secret
+    
